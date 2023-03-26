@@ -3,6 +3,7 @@ import {
   GraphQLError,
   IntrospectionQuery,
 } from 'graphql';
+import '../polyfills';
 import { toError } from './toError';
 import { userAgent } from './userAgent';
 

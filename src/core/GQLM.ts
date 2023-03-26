@@ -39,6 +39,7 @@ import { dirname } from 'path';
 import pluralize from 'pluralize';
 import { format } from 'prettier';
 import { Memory, MemoryAssoc, MemoryResult } from '../memory/Memory';
+import '../polyfills';
 import { ASTUtil } from '../util/ASTUtil';
 import { GraphQLFieldDef } from '../util/GraphQLFieldDef';
 import { GraphQLNamedInput } from '../util/GraphQLNamedInput';
