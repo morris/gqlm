@@ -1,0 +1,21 @@
+{
+  "include": ["src", "test"],
+  "compilerOptions": {
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+
+    "target": "ES2019",
+    "module": "CommonJS",
+    "sourceMap": true,
+    "declaration": true,
+
+    "noImplicitAny": true,
+    "noImplicitThis": true,
+    "noUnusedLocals": true,
+    "strict": true,
+    "strictFunctionTypes": true,
+    "strictNullChecks": true,
+
+    "noEmit": true
+  }
+}

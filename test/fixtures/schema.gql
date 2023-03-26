@@ -1,0 +1,69 @@
+type Query {
+  hello: String
+  customers(limit: Int, offset: Int, types: [CustomerType!]): [Customer!]
+  customer(id: ID!): Customer
+  login(username: String!, password: String!): Boolean
+  search(q: String!): [SearchResult!]
+  validatePerson(input: ValidatePersonInput!): Boolean
+}
+
+interface Customer {
+  id: ID!
+  type: CustomerType!
+  name: String!
+  contracts: [Contract!]
+}
+
+enum CustomerType {
+  INDIVIDUAL
+  COMPANY
+}
+
+type Individual implements Customer {
+  id: ID!
+  type: CustomerType!
+  name: String!
+  contracts: [Contract!]
+  person: Person
+}
+
+type Company implements Customer {
+  id: ID!
+  type: CustomerType!
+  name: String!
+  contracts: [Contract!]
+  form: String!
+  employees: [Person!]
+}
+
+type Contract {
+  id: ID!
+  customer: Customer
+}
+
+type Person {
+  firstname: String!
+  lastname: String!
+  birthdate: Date!
+}
+
+input ValidatePersonInput {
+  firstname: String!
+  lastname: String
+  birthdate: Date!
+  options: [ValidatePersonOption!]
+}
+
+enum ValidatePersonOption {
+  MINOR
+  FULL_NAME
+}
+
+scalar Date
+scalar Unused
+
+type Hidden {
+  foo: Unused
+}
+
+union SearchResult = Individual | Company | Contract | Person
