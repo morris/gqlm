@@ -1,4 +1,4 @@
-import { GQLM } from '../../src/core/GQLM';
+import { GQLM } from '../../dist/core/GQLM.js';
 
 GQLM.run({
   url: 'https://countries.trevorblades.com',

@@ -104,7 +104,7 @@ export class GQLM {
   }
 
   async run() {
-    await this.clearOutDir();
+    await this.cleanOutDir();
 
     for (let i = 1; i <= this.options.count; ++i) {
       const endpoint = this.chance.weighted(
@@ -750,7 +750,13 @@ export class GQLM {
     await fs.writeFile(path.join(this.outDir, file), contents);
   }
 
-  async clearOutDir() {
-    await fs.rm(this.outDir, { recursive: true });
+  async cleanOutDir() {
+    try {
+      await fs.rm(this.outDir, { recursive: true });
+    } catch (err_) {
+      const err = toError<{ code?: string }>(err_);
+
+      if (err.code !== 'ENOENT') throw err;
+    }
   }
 }

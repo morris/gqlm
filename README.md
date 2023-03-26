@@ -1,12 +1,12 @@
 # gqlm
 
-A framework for fully automatic monkey testing of GraphQL APIs.
-Explores GraphQL schemas with almost zero human input,
+🐵 A framework for fully automatic **monkey testing** of GraphQL APIs.
+Explores GraphQL schemas with almost **zero human input**,
 discovering bugs, edge cases, and security leaks.
 
 ## Installation
 
-In an existing Node.js project:
+In an existing Node.js project, run:
 
 ```sh
 npm install gqlm
@@ -38,7 +38,8 @@ This will start automatic, explorative testing of your API with up to 5 requests
 
 - Test results with requests and responses are written to `__gqlm__/<n>.mjs`.
 - Collected memory is written to `__gqlm__/memory.mjs`.
-- Inspect these files to determine fitness. A good idea is
+- Inspect these files to determine fitness of the tested GraphQL API.
+- A good workflow is to follow up by creating integration/snapshot tests for conservation of behavior.
 
 ## Authentication
 
@@ -98,16 +99,14 @@ it's possible to design arbitrary environments around GQLM, e.g.
 - load testing,
 - etc.
 
+Additionally, it is trivial to extend GQLM by creating a sub-class and overriding some behavior.
+
 ## Mutations
 
 Currently, only GraphQL queries are supported. Mutations need some discovery
-as to how to test them safely and make the results useful. PRs welcome!
+on how to test them safely and make the results useful. PRs welcome!
 
 ## TypeScript
 
 Test files can also be written in TypeScript (`.ts` extension).
 Just install and use `ts-node` instead of `node`.
-
-```
-
-```
