@@ -1,4 +1,4 @@
-# gqlm
+# GQLM
 
 🐵 A framework for fully automatic **monkey testing** of GraphQL APIs.
 
