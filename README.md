@@ -39,6 +39,7 @@ This will start automatic, explorative testing of your API with up to 5 requests
 
 - Test results with requests and responses are written to `__gqlm__/<n>.mjs`.
 - Collected memory is written to `__gqlm__/memory.mjs`.
+- Schema coverage is written to `__gqlm__/coverage.mjs`.
 - Inspect these files to determine fitness of the tested GraphQL API.
 - A good workflow is to follow up by creating integration/snapshot tests for conservation of behavior.
 

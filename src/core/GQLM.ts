@@ -18,6 +18,7 @@ import {
   GraphQLList,
   GraphQLNamedType,
   GraphQLObjectType,
+  GraphQLOutputType,
   GraphQLScalarType,
   GraphQLSchema,
   GraphQLType,
@@ -28,6 +29,7 @@ import {
   isListType,
   isNonNullType,
   isObjectType,
+  isOutputType,
   isScalarType,
   isUnionType,
   print,
@@ -47,6 +49,7 @@ import { introspect } from '../util/introspect';
 import { sum } from '../util/sum';
 import { toError } from '../util/toError';
 import { userAgent } from '../util/userAgent';
+import { Coverage } from './Coverage';
 import { Endpoint } from './Endpoint';
 import { Options } from './Options';
 import { Result } from './Result';
@@ -131,7 +134,12 @@ export class GQLM {
       }
     }
 
+    const coverage = this.getCoverage();
+
+    this.logCoverage(coverage);
+
     await this.writeMemory();
+    await this.writeCoverage(coverage);
   }
 
   async runOperation(ast: DocumentNode): Promise<Result> {
@@ -710,6 +718,17 @@ export class GQLM {
     }
   }
 
+  logCoverage(coverage: Coverage) {
+    const { totalFields, discoveredFields, nonNullFields } = coverage;
+    const d = (discoveredFields / totalFields) * 100;
+    const n = (nonNullFields / totalFields) * 100;
+
+    console.log('COVERAGE');
+    console.log(`Total fields: ${totalFields}`);
+    console.log(`Discovered fields: ${discoveredFields} (${d.toFixed(1)}%)`);
+    console.log(`Non-null fields: ${nonNullFields} (${n.toFixed(1)}%)`);
+  }
+
   // i/o
 
   async writeResult(i: number, result: Result) {
@@ -740,6 +759,99 @@ export class GQLM {
       format(
         `
           export const memory = ${JSON.stringify(this.memory.serialize())};
+        `,
+        { parser: 'babel' }
+      )
+    );
+  }
+
+  getCoverage() {
+    const { clientSchema } = this;
+    const coverage: Coverage = {
+      totalFields: 0,
+      discoveredFields: 0,
+      nonNullFields: 0,
+      types: {},
+    };
+
+    for (const type of Object.values(clientSchema.getTypeMap())) {
+      if (isObjectType(type) && type.name.slice(0, 2) !== '__') {
+        coverage.types[type.name] = {};
+
+        for (const field of Object.values(type.getFields())) {
+          coverage.types[type.name][field.name] = [0, 0];
+          ++coverage.totalFields;
+        }
+      }
+    }
+
+    function visitDataForCoverage(data: unknown, type: GraphQLOutputType) {
+      if (isNonNullType(type)) {
+        visitDataForCoverage(data, type.ofType);
+      } else if (isListType(type)) {
+        if (Array.isArray(data)) {
+          data.forEach((it) => visitDataForCoverage(it, type.ofType));
+        }
+      } else if (isInterfaceType(type)) {
+        if (
+          typeof data === 'object' &&
+          data &&
+          '__typename' in data &&
+          typeof data.__typename === 'string'
+        ) {
+          const { __typename } = data;
+          const t = clientSchema.getType(__typename);
+
+          if (isOutputType(t)) {
+            visitDataForCoverage(data, t);
+          }
+        }
+      } else if (isObjectType(type)) {
+        if (typeof data === 'object' && data) {
+          Object.entries(data).forEach(([fieldName, value]) => {
+            if (fieldName === '__typename') return;
+
+            const c = coverage.types[type.name][fieldName];
+
+            if (c[0] === 0) ++coverage.discoveredFields;
+
+            c[0] += 1;
+
+            if (value !== null && value !== undefined) {
+              if (c[1] === 0) ++coverage.nonNullFields;
+
+              c[1] += 1;
+            }
+
+            const field = type.getFields()[fieldName];
+
+            visitDataForCoverage(value, field.type);
+          });
+        }
+      }
+    }
+
+    const queryType = this.clientSchema.getQueryType();
+
+    if (!queryType) {
+      throw new Error('No Query type');
+    }
+
+    for (const endpoint of this.endpoints) {
+      for (const result of endpoint.results) {
+        visitDataForCoverage(result.data, queryType);
+      }
+    }
+
+    return coverage;
+  }
+
+  async writeCoverage(coverage: Coverage) {
+    await this.writeFile(
+      'coverage.mjs',
+      format(
+        `
+          export const coverage = ${JSON.stringify(coverage)};
         `,
         { parser: 'babel' }
       )
